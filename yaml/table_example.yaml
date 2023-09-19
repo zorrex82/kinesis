@@ -1,0 +1,106 @@
+input:
+  name: "SOURCE_SQL_STREAM_001"
+  columns:
+    - name: "op"
+      type: "VARCHAR(255)"
+    - name: "commit_timestamp"
+      type: "VARCHAR(255)"
+    - name: "change_seq"
+      type: "VARCHAR(255)"
+    - name: "sdkcoo"
+      type: "VARCHAR(10)"
+    - name: "sddoco"
+      type: "DECIMAL(19)"
+    - name: "sddcto"
+      type: "VARCHAR(4)"
+    - name: "sdlnid"
+      type: "DECIMAL(19)"
+    - name: "sdsfxo"
+      type: "VARCHAR(6)"
+    - name: "sdmcu"
+      type: "VARCHAR(24)"
+    - name: "sdco"
+      type: "VARCHAR(10)"
+    - name: "sdokco"
+      type: "VARCHAR(10)"
+  description: "Input stream for processing"
+
+
+output:
+  name: "DESTINATION_SQL_STREAM_F4211"
+  columns:
+    - name: "op"
+      type: "STRING"
+    - name: "commit_timestamp"
+      type: "STRING"
+    - name: "change_seq"
+      type: "STRING"
+    - name: "sdkcoo"
+      type: "STRING"
+    - name: "sddoco"
+      type: "DECIMAL"
+    - name: "sddcto"
+      type: "STRING"
+    - name: "sdlnid"
+      type: "DECIMAL"
+    - name: "sdsfxo"
+      type: "STRING"
+    - name: "sdmcu"
+      type: "STRING"
+    - name: "sdco"
+      type: "STRING"
+    - name: "sdokco"
+      type: "STRING"
+  description: "Output stream for processed data"
+
+transformations:
+  - name: "continuous_filter"
+    description: "Performs a continuous filter based on a WHERE condition. Processes Before Image and adds columns to match dms to S3 output."
+    sql: |
+      INSERT INTO "DESTINATION_SQL_STREAM_F4211"
+      SELECT
+        CASE
+          WHEN "operation"='load' THEN ' '
+          WHEN "operation"='insert' THEN 'I'
+          WHEN "operation"='update' THEN 'U'
+          WHEN "operation"='delete' THEN 'D'
+        END AS op,
+        "COL_timestamp" AS commit_timestamp,
+        "change_seq",
+        sdkcoo,
+        sddoco,
+        sddcto,
+        sdlnid,
+        sdsfxo,
+        sdmcu,
+        sdco,
+        sdokco
+      FROM "SOURCE_SQL_STREAM_001"
+      WHERE "COL_tablename"='F4211'
+        AND "COL_schemaname"='JDE';
+
+  - name: "updated_primary_key_records"
+    description: "Creates a pump to insert updated primary key records as soft deletes."
+    sql: |
+      INSERT INTO "DESTINATION_SQL_STREAM_F4211"
+      SELECT
+        'D' AS op,
+        "COL_timestamp" AS commit_timestamp,
+        "change_seq",
+        "bi_sdkcoo" AS sdkcoo,
+        "bi_sddoco" AS sddoco,
+        "bi_sddcto" AS sddcto,
+        "bi_sdlnid" AS sdlnid,
+        "bi_sdsfxo" AS sdsfxo,
+        sdmcu,
+        sdco,
+        sdokco
+      FROM "SOURCE_SQL_STREAM_001"
+      WHERE "COL_tablename"='F4211'
+        AND "COL_schemaname"='JDE'
+        AND "operation"='update'
+        AND (NULLIF("bi_sdkcoo", sdkcoo) IS NOT NULL
+          OR NULLIF("bi_sddoco", sddoco) IS NOT NULL
+          OR NULLIF("bi_sddcto", sddcto) IS NOT NULL
+          OR NULLIF("bi_sdlnid", sdlnid) IS NOT NULL
+          OR NULLIF("bi_sdsfxo", sdsfxo) IS NOT NULL);

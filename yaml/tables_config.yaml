@@ -1,0 +1,37 @@
+tables_config:
+  - table_name: "F4211"
+    in_app_stream_name_input: "SOURCE_SQL_STREAM_001"
+    in_app_stream_name_output: "DESTINATION_SQL_STREAM_F4211"
+    in_app_stream_name_error_output: "ERROR_STREAM_F4211"
+    columns:
+      - name: "sdkcoo"
+        sql_type: "VARCHAR(10)"
+      - name: "sddoco"
+        sql_type: "DECIMAL(19)"
+      - name: "sddcto"
+        sql_type: "VARCHAR(4)"
+      - name: "sdlnid"
+        sql_type: "DECIMAL(19)"
+      - name: "sdsfxo"
+        sql_type: "VARCHAR(6)"
+      - name: "sdmcu"
+        sql_type: "VARCHAR(24)"
+      - name: "sdco"
+        sql_type: "VARCHAR(10)"
+      - name: "sdokco"
+        sql_type: "VARCHAR(10)"
+    conditions:
+      - operation: "load"
+        condition: ""
+      - operation: "insert"
+        condition: ""
+      - operation: "update"
+        condition: |
+          "bi_sdkcoo" IS NOT NULL OR
+          "bi_sddoco" IS NOT NULL OR
+          "bi_sddcto" IS NOT NULL OR
+          "bi_sdlnid" IS NOT NULL OR
+          "bi_sdsfxo" IS NOT NULL
+      - operation: "delete"
+        condition: ""
+  # Add more columnsS
