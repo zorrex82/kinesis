@@ -1,0 +1,31 @@
+pipelines:
+  branches:
+    dev:
+      - step:
+          name: Deploy DEV
+          script:
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY          
+            - cd environments/dev
+            - terraform init
+            - terraform apply -auto-approve
+
+    qa:
+      - step:
+          name: Deploy QA
+          script:
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY          
+            - cd environments/qa
+            - terraform init
+            - terraform apply -auto-approve
+
+    prod:
+      - step:
+          name: Deploy PROD
+          script:
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY          
+            - cd environments/prod
+            - terraform init
+            - terraform apply -auto-approve
